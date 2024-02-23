@@ -248,6 +248,94 @@ ProtocolGame::ProtocolGame(Connection_ptr initConnection) :
 	version = CLIENT_VERSION;
 }
 
+ProtocolGame::LiveCastsMap ProtocolGame::m_liveCasts;
+
+void ProtocolGame::insertCaster() {
+	const auto& cast = m_liveCasts.find(player);
+	if (cast != m_liveCasts.end()) {
+		return;
+	}
+
+	m_liveCasts.insert(std::make_pair(player, this));
+}
+
+void ProtocolGame::removeCaster()
+{
+	for (const auto& [casterPlayer, _] : getLiveCasts()) {
+		if (casterPlayer == player) {
+			m_liveCasts.erase(player);
+			break;
+		}
+	}
+}
+
+void ProtocolGame::parseTelescopeBack(bool lostConnection) {
+	g_dispatcher().addEvent(std::bind(&ProtocolGame::telescopeBack, getThis(), lostConnection), "ProtocolGame::telescopeBack");
+}
+
+void ProtocolGame::sendSpectatorAppear(std::shared_ptr<Player> foundPlayer)
+{
+	player = foundPlayer;
+	sendAddCreature(player, player->getPosition(), 0, false);
+	syncOpenContainers();
+	player->client->addSpectator(getThis(), m_twatchername, m_spy);
+	sendMagicEffect(player->getPosition(), CONST_ME_TELEPORT);
+
+	if (player->client->isBroadcasting()) {
+		std::stringstream WelcomeMSG;
+		WelcomeMSG << player->getName() << " is broadcasting for " << player->client->list().size() << " people.\nLivestream time: " << player->client->getBroadCastTimeString();
+		sendTextMessage(TextMessage(MESSAGE_LOOK, WelcomeMSG.str().c_str()));
+
+		const std::string& description = player->client->getDescription();
+		if (!description.empty())
+			sendCreatureSay(player, TALKTYPE_SAY, description);
+
+		sendChannel(CHANNEL_CAST, "Tibia Cast", nullptr, nullptr);
+	}
+}
+
+void ProtocolGame::spectatorLogin(const std::string& name, const std::string& password)
+{
+	const size_t& findIndex = name.find("[");
+	if (findIndex == std::string::npos) {
+		disconnectClient("Could not connect to this livestream.");
+		return;
+	}
+
+	const std::string& streamerName = name.substr(0, findIndex - 1);
+	auto foundPlayer = g_game().getPlayerByName(streamerName);
+	if (!foundPlayer || foundPlayer->isRemoved() || !foundPlayer->client->isBroadcasting() || !foundPlayer->hasClient()) {
+		disconnectClient("Livestream unavailable.");
+		return;
+	}
+
+	if (foundPlayer->client->getVersion() > 1100 && version == 1100) {
+		disconnectClient("Sorry, this cast can only be viewed using the version 12 client.");
+		return;
+	}
+  
+  if (foundPlayer->client->getVersion() < 1200 && version > 1100) {
+		disconnectClient("you can only watch this live with client 10");
+		return;
+	}
+
+	if (foundPlayer->client->banned(getIP())) {
+		disconnectClient("You are banned from this livestream.");
+		return;
+	}
+
+	if (!foundPlayer->client->check(password)) {
+		disconnectClient("This livestream is protected! Invalid password.");
+		return;
+	}
+
+	m_spectator = true;
+	acceptPackets = true;
+
+	sendSpectatorAppear(foundPlayer);
+	OutputMessagePool::getInstance().addProtocolToAutosend(shared_from_this());
+}
+
 template <typename Callable, typename... Args>
 void ProtocolGame::addGameTask(Callable function, Args &&... args) {
 	g_dispatcher().addEvent(std::bind(function, &g_game(), std::forward<Args>(args)...), "ProtocolGame::addGameTask");

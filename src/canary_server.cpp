@@ -128,7 +128,7 @@ int CanaryServer::run() {
 	loaderStatus.wait(LoaderStatus::LOADING);
 
 	if (loaderStatus == LoaderStatus::FAILED || !serviceManager.is_running()) {
-		logger.error("No services running. The server is NOT online!");
+		logger.error("No services running. The server is NOT online! Status code: {}, loaderStatus: {}", serviceManager.is_running(), loaderStatus == LoaderStatus::FAILED ? "FAILED" : "SUCCESS");
 		shutdown();
 		return EXIT_FAILURE;
 	}

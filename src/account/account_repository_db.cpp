@@ -35,17 +35,6 @@ bool AccountRepositoryDB::loadByEmailOrName(bool oldProtocol, const std::string 
 	return load(query, acc);
 };
 
-bool AccountRepositoryDB::loadBySession(const std::string &sessionKey, AccountInfo &acc) {
-	auto query = fmt::format(
-		"SELECT `accounts`.`id`, `type`, `premdays`, `lastday`, `creation`, `premdays_purchased`, `account_sessions`.`expires` "
-		"FROM `accounts` "
-		"INNER JOIN `account_sessions` ON `account_sessions`.`account_id` = `accounts`.`id` "
-		"WHERE `account_sessions`.`id` = {}",
-		g_database().escapeString(transformToSHA1(sessionKey))
-	);
-	return load(query, acc);
-};
-
 bool AccountRepositoryDB::save(const AccountInfo &accInfo) {
 	bool successful = g_database().executeQuery(
 		fmt::format(

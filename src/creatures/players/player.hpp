@@ -27,6 +27,7 @@
 #include "creatures/appearance/outfit/outfit.hpp"
 #include "grouping/party.hpp"
 #include "server/network/protocol/protocolgame.hpp"
+#include "server/network/protocol/protocolspectator.hpp"
 #include "items/containers/rewards/reward.hpp"
 #include "items/containers/rewards/rewardchest.hpp"
 #include "map/town.hpp"
@@ -49,7 +50,6 @@ class TaskHuntingSlot;
 class Spell;
 class PlayerWheel;
 class PlayerAchievement;
-class Spectators;
 class Account;
 
 struct ModalWindow;
@@ -2595,6 +2595,30 @@ public:
 
 	std::shared_ptr<Container> getStoreInbox() const;
 
+	bool hasClient() const {
+		if (client) {
+			return client->getOwner() != nullptr;
+		}
+		return false;
+	}
+
+	ProtocolGame_ptr getClient() const {
+		if (client) {
+			return client->getOwner();
+		}
+		return nullptr;
+	}
+
+	void telescopeGo(uint16_t guid, bool spy)
+	{
+		if (client) {
+			client->telescopeGo(guid, spy);
+		}
+	}
+
+	static bool sortByViewerCount(Player* lhs, Player* rhs) { return lhs->client->getCastViewerCount() > rhs->client->getCastViewerCount(); }
+	uint32_t getCastViewerCount() { return client->getCastViewerCount(); }
+
 private:
 	friend class PlayerLock;
 	std::mutex mutex;
@@ -2763,7 +2787,7 @@ private:
 	std::shared_ptr<Npc> shopOwner = nullptr;
 	std::shared_ptr<Party> m_party = nullptr;
 	std::shared_ptr<Player> tradePartner = nullptr;
-	ProtocolGame_ptr client;
+	std::shared_ptr<ProtocolSpectator> client;
 	std::shared_ptr<Task> walkTask;
 	std::shared_ptr<Town> town;
 	Vocation* vocation = nullptr;

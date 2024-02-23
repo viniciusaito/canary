@@ -364,6 +364,9 @@ private:
 		registerMethod(L, "Player", "addAchievementPoints", PlayerFunctions::luaPlayerAddAchievementPoints);
 		registerMethod(L, "Player", "removeAchievementPoints", PlayerFunctions::luaPlayerRemoveAchievementPoints);
 
+		registerMethod(L, "Player", "getSpectators", PlayerFunctions::luaPlayerGetSpectators);
+		registerMethod(L, "Player", "setSpectators", PlayerFunctions::luaPlayerSetSpectators);
+
 		GroupFunctions::init(L);
 		GuildFunctions::init(L);
 		MountFunctions::init(L);
@@ -717,6 +720,9 @@ private:
 	static int luaPlayerGetAchievementPoints(lua_State* L);
 	static int luaPlayerAddAchievementPoints(lua_State* L);
 	static int luaPlayerRemoveAchievementPoints(lua_State* L);
+
+	static int luaPlayerGetSpectators(lua_State* L);
+	static int luaPlayerSetSpectators(lua_State* L);
 
 	friend class CreatureFunctions;
 };

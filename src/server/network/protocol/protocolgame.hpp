@@ -26,6 +26,7 @@ class ProtocolGame;
 class PreySlot;
 class TaskHuntingSlot;
 class TaskHuntingOption;
+class Spectators;
 
 struct ModalWindow;
 struct Achievement;
@@ -72,7 +73,14 @@ public:
 		return version;
 	}
 
+	void insertCaster();
+	void removeCaster();
+	using LiveCastsMap = std::unordered_map<std::shared_ptr<Player>, ProtocolGame_ptr>;
+	static const LiveCastsMap& getLiveCasts() { return m_liveCasts; }
+
 private:
+	static LiveCastsMap m_liveCasts;
+
 	// Helpers so we don't need to bind every time
 	template <typename Callable, typename... Args>
 	void addGameTask(Callable function, Args &&... args);
@@ -475,6 +483,18 @@ private:
 	void parseSaveWheel(NetworkMessage &msg);
 	void parseWheelGemAction(NetworkMessage &msg);
 
+	// Spectators
+	void spectatorLogin(const std::string& name, const std::string& password);
+	void sendSpectatorAppear(std::shared_ptr<Player> foundPlayer);
+	void syncOpenContainers();
+	void castNavigation(uint16_t direction);
+	bool canWatch(std::shared_ptr<Player> foundPlayer) const;
+	void spectatorLookAt(const Position& pos, uint8_t stackPos);
+	void telescopeGo(uint16_t guid, bool spy = false);
+	void telescopeBack(bool lostConnection);
+	void parseTelescopeBack(bool lostConnection);	
+
+	friend class ProtocolSpectator;
 	friend class Player;
 	friend class PlayerWheel;
 
@@ -495,6 +515,13 @@ private:
 	bool shouldAddExivaRestrictions = false;
 
 	bool oldProtocol = false;
+
+	bool m_spectator = false;
+	int64_t m_lastCastTime = 0;
+	int64_t m_time = 0;
+	uint32_t m_count = 0;
+	std::string m_twatchername;
+	bool m_spy = false;
 
 	uint16_t otclientV8 = 0;
 

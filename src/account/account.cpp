@@ -49,11 +49,6 @@ uint8_t Account::load() {
 		return enumToValue(AccountErrors_t::Ok);
 	}
 
-	if (!m_descriptor.empty() && g_accountRepository().loadBySession(m_descriptor, m_account)) {
-		m_accLoaded = true;
-		return enumToValue(AccountErrors_t::Ok);
-	}
-
 	updatePremiumTime();
 	return enumToValue(AccountErrors_t::LoadingAccount);
 }

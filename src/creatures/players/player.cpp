@@ -28,6 +28,7 @@
 #include "lua/callbacks/event_callback.hpp"
 #include "lua/callbacks/events_callbacks.hpp"
 #include "lua/creature/movement.hpp"
+#include "server/network/protocol/protocolspectator.hpp"
 #include "io/iologindata.hpp"
 #include "items/bed.hpp"
 #include "items/weapons/weapons.hpp"
@@ -46,7 +47,7 @@ Player::Player(ProtocolGame_ptr p) :
 	lastPing(OTSYS_TIME()),
 	lastPong(lastPing),
 	inbox(std::make_shared<Inbox>(ITEM_INBOX)),
-	client(std::move(p)) {
+	client(std::make_shared<ProtocolSpectator>(p)) {
 	m_wheelPlayer = std::make_unique<PlayerWheel>(*this);
 	m_playerAchievement = std::make_unique<PlayerAchievement>(*this);
 }

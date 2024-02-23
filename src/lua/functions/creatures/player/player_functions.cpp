@@ -4279,3 +4279,132 @@ int PlayerFunctions::luaPlayerRemoveAchievementPoints(lua_State* L) {
 	pushBoolean(L, true);
 	return 1;
 }
+
+int PlayerFunctions::luaPlayerGetSpectators(lua_State* L)
+{
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		lua_newtable(L);
+		setField(L, "description", player->client->getDescription());
+		setFieldBool(L, "broadcast", player->client->isBroadcasting());
+		setField(L, "password", player->client->getPassword());
+
+		lua_pushstring(L, "names");
+		lua_newtable(L);
+		StringVector t = player->client->list();
+
+		StringVector::const_iterator it = t.begin();
+		for (uint32_t i = 1; it != t.end(); ++it, ++i) {
+			lua_pushnumber(L, i);
+			lua_pushstring(L, (*it).c_str());
+			lua_settable(L, -3);
+		}
+
+		lua_settable(L, -3);
+		lua_pushstring(L, "mutes");
+		lua_newtable(L);
+		t = player->client->muteList();
+
+		it = t.begin();
+		for (uint32_t i = 1; it != t.end(); ++it, ++i) {
+			lua_pushnumber(L, i);
+			lua_pushstring(L, (*it).c_str());
+			lua_settable(L, -3);
+		}
+
+		lua_settable(L, -3);
+		lua_pushstring(L, "bans");
+		lua_newtable(L);
+		std::map<std::string, uint32_t> _t = player->client->banList();
+
+		std::map<std::string, uint32_t>::const_iterator _it = _t.begin();
+		for (uint32_t i = 1; _it != _t.end(); ++_it, ++i) {
+			lua_pushnumber(L, i);
+			lua_pushstring(L, _it->first.c_str());
+			lua_settable(L, -3);
+		}
+
+		lua_settable(L, -3);
+		lua_pushstring(L, "kick");
+		lua_newtable(L);
+		lua_settable(L, -3);
+	} else {
+		reportErrorFunc(getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
+		lua_pushboolean(L, false);
+	}
+
+	return 1;
+}
+
+int PlayerFunctions::luaPlayerSetSpectators(lua_State* L)
+{
+	std::string description = getFieldString(L, -1, "description");
+	std::string password = getFieldString(L, -1, "password");
+	bool broadcast = getField<bool>(L, -1, "broadcast");
+
+	StringVector m, b, k;
+	lua_pushstring(L, "mutes");
+	lua_gettable(L, -2);
+
+	lua_pushnil(L);
+	while (lua_next(L, -2)) {
+		m.push_back(asLowerCaseString(lua_tostring(L, -1)));
+		lua_pop(L, 1);
+	}
+
+	lua_pop(L, 1);
+	lua_pushstring(L, "bans");
+	lua_gettable(L, -2);
+
+	lua_pushnil(L);
+	while (lua_next(L, -2)) {
+		b.push_back(asLowerCaseString(lua_tostring(L, -1)));
+		lua_pop(L, 1);
+	}
+
+	lua_pop(L, 1);
+	lua_pushstring(L, "kick");
+	lua_gettable(L, -2);
+
+	lua_pushnil(L);
+	while (lua_next(L, -2)) {
+		k.push_back(asLowerCaseString(lua_tostring(L, -1)));
+		lua_pop(L, 1);
+	}
+
+	lua_pop(L, 2);
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		if (player->client->getPassword() != password && !password.empty()) {
+			player->client->clear(false);
+		}
+
+		player->client->setPassword(password);
+		if (!broadcast && player->client->isBroadcasting()) {
+			player->client->clear(false);
+		}
+
+		player->client->kick(k);
+		player->client->mute(m);
+		player->client->ban(b);
+
+		if (!player->client->isBroadcasting()) {
+			player->client->setBroadcastTime(OTSYS_TIME());
+		}
+
+		player->client->setBroadcast(broadcast);
+
+		if (broadcast) {
+			player->client->insertCaster();
+			player->sendChannel(CHANNEL_CAST, "Tibia Cast", nullptr, nullptr);
+		}
+
+		player->client->setDescription(description);
+		lua_pushboolean(L, true);
+	} else {
+		reportErrorFunc(getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
+		lua_pushboolean(L, false);
+	}
+
+	return 1;
+}

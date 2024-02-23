@@ -24,7 +24,6 @@ public:
 
 	virtual bool loadByID(const uint32_t &id, AccountInfo &acc) = 0;
 	virtual bool loadByEmailOrName(bool oldProtocol, const std::string &emailOrName, AccountInfo &acc) = 0;
-	virtual bool loadBySession(const std::string &email, AccountInfo &acc) = 0;
 	virtual bool save(const AccountInfo &accInfo) = 0;
 
 	virtual bool getPassword(const uint32_t &id, std::string &password) = 0;
