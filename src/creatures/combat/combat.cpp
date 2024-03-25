@@ -961,9 +961,9 @@ void Combat::setupChain(const std::shared_ptr<Weapon> &weapon) {
 		0, 0, 0, 1, 0, 0, 0,
 	};
 	// clang-format on
-	auto area = std::make_unique<AreaCombat>();
-	area->setupArea(areaList, 7);
-	setArea(area);
+	auto m_area = std::make_unique<AreaCombat>();
+	m_area->setupArea(areaList, 7);
+	setArea(m_area);
 	g_logger().trace("Weapon: {}, element type: {}", Item::items[weapon->getID()].name, weapon->params.combatType);
 	setParam(COMBAT_PARAM_TYPE, weapon->params.combatType);
 	if (weaponType != WEAPON_WAND) {
@@ -1022,7 +1022,7 @@ bool Combat::doCombatChain(std::shared_ptr<Creature> caster, std::shared_ptr<Cre
 	uint8_t chainDistance;
 	bool backtracking = false;
 	params.chainCallback->getChainValues(caster, maxTargets, chainDistance, backtracking);
-	auto targets = pickChainTargets(caster, params, chainDistance, maxTargets, backtracking, aggressive, target);
+	auto targets = pickChainTargets(caster, params, chainDistance, maxTargets, aggressive, backtracking, std::move(target));
 
 	g_logger().debug("[{}] Chain targets: {}", __FUNCTION__, targets.size());
 	if (targets.empty() || (targets.size() == 1 && targets.begin()->second.empty())) {
@@ -1114,7 +1114,7 @@ void Combat::CombatFunc(std::shared_ptr<Creature> caster, const Position &origin
 	uint32_t maxY = 0;
 
 	// calculate the max viewable range
-	for (std::shared_ptr<Tile> tile : tileList) {
+	for (const std::shared_ptr<Tile>& tile : tileList) {
 		const Position &tilePos = tile->getPosition();
 
 		uint32_t diff = Position::getDistanceX(tilePos, pos);
@@ -1132,7 +1132,7 @@ void Combat::CombatFunc(std::shared_ptr<Creature> caster, const Position &origin
 	const int32_t rangeY = maxY + MAP_MAX_VIEW_PORT_Y;
 
 	int affected = 0;
-	for (std::shared_ptr<Tile> tile : tileList) {
+	for (const std::shared_ptr<Tile>& tile : tileList) {
 		if (canDoCombat(caster, tile, params.aggressive) != RETURNVALUE_NOERROR) {
 			continue;
 		}
@@ -1187,7 +1187,7 @@ void Combat::CombatFunc(std::shared_ptr<Creature> caster, const Position &origin
 	uint8_t beamAffectedCurrent = 0;
 
 	tmpDamage.affected = affected;
-	for (std::shared_ptr<Tile> tile : tileList) {
+	for (const std::shared_ptr<Tile>& tile : tileList) {
 		if (canDoCombat(caster, tile, params.aggressive) != RETURNVALUE_NOERROR) {
 			continue;
 		}
@@ -1233,7 +1233,7 @@ void Combat::CombatFunc(std::shared_ptr<Creature> caster, const Position &origin
 }
 
 void Combat::doCombatHealth(std::shared_ptr<Creature> caster, std::shared_ptr<Creature> target, CombatDamage &damage, const CombatParams &params) {
-	doCombatHealth(caster, target, caster ? caster->getPosition() : Position(), damage, params);
+	doCombatHealth(caster, std::move(target), caster ? caster->getPosition() : Position(), damage, params);
 }
 
 void Combat::doCombatHealth(std::shared_ptr<Creature> caster, std::shared_ptr<Creature> target, const Position &origin, CombatDamage &damage, const CombatParams &params) {

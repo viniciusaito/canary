@@ -749,7 +749,7 @@ bool InstantSpell::playerCastInstant(std::shared_ptr<Player> player, std::string
 		var.type = VARIANT_NUMBER;
 		var.number = player->getID();
 	} else if (needTarget || casterTargetOrDirection) {
-		std::shared_ptr<Creature> target = nullptr;
+		std::shared_ptr<Creature> target;
 		bool useDirection = false;
 
 		if (hasParam) {
@@ -1045,7 +1045,7 @@ bool RuneSpell::castSpell(std::shared_ptr<Creature> creature, std::shared_ptr<Cr
 bool RuneSpell::internalCastSpell(std::shared_ptr<Creature> creature, const LuaVariant &var, bool isHotkey) {
 	bool result;
 	if (isLoadedCallback()) {
-		result = executeCastSpell(creature, var, isHotkey);
+		result = executeCastSpell(std::move(creature), var, isHotkey);
 	} else {
 		result = false;
 	}

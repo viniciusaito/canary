@@ -150,12 +150,9 @@ SpawnMonster::~SpawnMonster() {
 
 bool SpawnMonster::findPlayer(const Position &pos) {
 	auto spectators = Spectators().find<Player>(pos);
-	for (const auto &spectator : spectators) {
-		if (!spectator->getPlayer()->hasFlag(PlayerFlags_t::IgnoredByMonsters)) {
-			return true;
-		}
-	}
-	return false;
+	return std::ranges::any_of(spectators, [](const auto& spectator) {
+		return !spectator->getPlayer()->hasFlag(PlayerFlags_t::IgnoredByMonsters);
+	});
 }
 
 bool SpawnMonster::isInSpawnMonsterZone(const Position &pos) {
@@ -292,7 +289,7 @@ void SpawnMonster::cleanup() {
 }
 
 bool SpawnMonster::addMonster(const std::string &name, const Position &pos, Direction dir, uint32_t scheduleInterval, uint32_t weight /*= 1*/) {
-	std::string variant = "";
+	std::string variant;
 	for (const auto &zone : Zone::getZones(pos)) {
 		if (!zone->getMonsterVariant().empty()) {
 			variant = zone->getMonsterVariant() + "|";
@@ -429,10 +426,8 @@ std::shared_ptr<MonsterType> spawnBlock_t::getMonsterType() const {
 }
 
 bool spawnBlock_t::hasBoss() const {
-	for (const auto &[monsterType, weight] : monsterTypes) {
-		if (monsterType->isBoss()) {
-			return true;
-		}
-	}
-	return false;
+	return std::ranges::any_of(monsterTypes, [](const auto& pair) {
+		const auto& [monsterType, weight] = pair;
+		return monsterType->isBoss();
+	});
 }

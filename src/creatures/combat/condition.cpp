@@ -1472,7 +1472,7 @@ bool ConditionDamage::unserializeProp(ConditionAttr_t attr, PropStream &propStre
 	} else if (attr == CONDITIONATTR_OWNER) {
 		return propStream.skip(4);
 	} else if (attr == CONDITIONATTR_INTERVALDATA) {
-		IntervalInfo damageInfo;
+		IntervalInfo damageInfo {};
 		if (!propStream.read<IntervalInfo>(damageInfo)) {
 			return false;
 		}
@@ -1530,7 +1530,7 @@ bool ConditionDamage::addDamage(int32_t rounds, int32_t time, int32_t value) {
 
 	// rounds, time, damage
 	for (int32_t i = 0; i < rounds; ++i) {
-		IntervalInfo damageInfo;
+		IntervalInfo damageInfo {};
 		damageInfo.interval = time;
 		damageInfo.timeLeft = time;
 		damageInfo.value = value;
@@ -1803,13 +1803,9 @@ void ConditionDamage::generateDamageList(int32_t amount, int32_t start, std::lis
  *  ConditionFeared
  */
 bool ConditionFeared::isStuck(std::shared_ptr<Creature> creature, Position pos) const {
-	for (Direction dir : m_directionsVector) {
-		if (canWalkTo(creature, pos, dir)) {
-			return false;
-		}
-	}
-
-	return true;
+	return std::ranges::all_of(m_directionsVector, [&](Direction dir) {
+		return !canWalkTo(creature, pos, dir);
+	});
 }
 
 bool ConditionFeared::getRandomDirection(std::shared_ptr<Creature> creature, Position pos) {

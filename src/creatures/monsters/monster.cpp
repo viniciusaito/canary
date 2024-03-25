@@ -385,7 +385,7 @@ void Monster::onCreatureFound(std::shared_ptr<Creature> creature, bool pushFront
 }
 
 void Monster::onCreatureEnter(std::shared_ptr<Creature> creature) {
-	onCreatureFound(creature, true);
+	onCreatureFound(std::move(creature), true);
 }
 
 bool Monster::isFriend(const std::shared_ptr<Creature> &creature) const {

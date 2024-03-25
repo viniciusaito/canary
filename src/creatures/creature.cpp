@@ -7,8 +7,6 @@
  * Website: https://docs.opentibiabr.com/
  */
 
-#include <utility>
-
 #include "pch.hpp"
 
 #include "creatures/creature.hpp"

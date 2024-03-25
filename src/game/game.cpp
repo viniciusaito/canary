@@ -53,8 +53,6 @@
 
 #include <appearances.pb.h>
 
-#include <utility>
-
 enum class HighscoreCategories_t : uint8_t {
 	EXPERIENCE = 0,
 	FIST_FIGHTING = 1,
