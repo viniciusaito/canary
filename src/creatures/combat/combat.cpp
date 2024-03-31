@@ -1114,7 +1114,7 @@ void Combat::CombatFunc(std::shared_ptr<Creature> caster, const Position &origin
 	uint32_t maxY = 0;
 
 	// calculate the max viewable range
-	for (const std::shared_ptr<Tile>& tile : tileList) {
+	for (const std::shared_ptr<Tile> &tile : tileList) {
 		const Position &tilePos = tile->getPosition();
 
 		uint32_t diff = Position::getDistanceX(tilePos, pos);
@@ -1132,7 +1132,7 @@ void Combat::CombatFunc(std::shared_ptr<Creature> caster, const Position &origin
 	const int32_t rangeY = maxY + MAP_MAX_VIEW_PORT_Y;
 
 	int affected = 0;
-	for (const std::shared_ptr<Tile>& tile : tileList) {
+	for (const std::shared_ptr<Tile> &tile : tileList) {
 		if (canDoCombat(caster, tile, params.aggressive) != RETURNVALUE_NOERROR) {
 			continue;
 		}
@@ -1187,7 +1187,7 @@ void Combat::CombatFunc(std::shared_ptr<Creature> caster, const Position &origin
 	uint8_t beamAffectedCurrent = 0;
 
 	tmpDamage.affected = affected;
-	for (const std::shared_ptr<Tile>& tile : tileList) {
+	for (const std::shared_ptr<Tile> &tile : tileList) {
 		if (canDoCombat(caster, tile, params.aggressive) != RETURNVALUE_NOERROR) {
 			continue;
 		}
