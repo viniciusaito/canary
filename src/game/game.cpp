@@ -1651,7 +1651,7 @@ void Game::playerMoveItem(std::shared_ptr<Player> player, const Position &fromPo
 		player->stowItem(item, count, false);
 		return;
 	}
-if (!item->isPushable() || item->hasAttribute(ItemAttribute_t::UNIQUEID)) {
+	if (!item->isPushable() || item->hasAttribute(ItemAttribute_t::UNIQUEID)) {
 		player->sendCancelMessage(RETURNVALUE_NOTMOVABLE);
 		return;
 	}
