@@ -43,6 +43,7 @@ local itemsTable = {
 	},
 	["creature products"] = {
 		{ itemName = "cowbell", clientId = 21204, sell = 210 },
+		{ itemName = "execowtioner mask", clientId = 21201, sell = 240 },
 		{ itemName = "giant pacifier", clientId = 21199, sell = 170 },
 		{ itemName = "glob of glooth", clientId = 21182, sell = 125 },
 		{ itemName = "glooth injection tube", clientId = 21103, sell = 350 },
